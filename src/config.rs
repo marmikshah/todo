@@ -1,13 +1,21 @@
-use env_logger::Env;
-use once_cell::sync::Lazy;
-use std::sync::Mutex;
+use std::io::Error;
+use std::path::Path;
 use std::{env, fs};
 
-use log::{debug, info, Level, LevelFilter};
+use log::{debug, info, warn, LevelFilter};
 
 #[derive(Debug)]
 pub struct Config {
     pub path: String,
+    pub dbpath: String,
+    pub statuspath: String,
+    pub is_initialised: bool,
+}
+
+impl Config {
+    pub fn update_init_status(self) -> Result<(), Error> {
+        Ok(())
+    }
 }
 
 impl Default for Config {
@@ -15,21 +23,36 @@ impl Default for Config {
         log::set_max_level(LevelFilter::Debug);
         debug!("Initialising db @ ./");
 
-        let path = env::var("TODO_DATASTORE_DIR")
-                            .unwrap_or_else(|_| String::from("./")) + ".todo/";
+        let path = env::var("TODO_DATASTORE_DIR").unwrap_or_else(|_| String::from("./")) + ".todo/";
 
         let result = fs::create_dir_all(&path);
         if result.is_ok() {
             debug!("Directory @ {} created successfully", &path);
         } else {
-            panic!("Cannot create data storage directory. Do you have the correct write permissions?");
+            panic!(
+                "Cannot create data storage directory. Do you have the correct write permissions?"
+            );
         }
 
-        let loglevel = env::var("TODO_LOG_LEVEL").unwrap_or_else(|_| String::from("debug"));
+        let mut is_initialised = false;
+        let status_file_path = &format!("{}.status", path);
+        let path_ref = Path::new(&status_file_path);
 
-        env_logger::Builder::from_env(Env::default().default_filter_or(&loglevel)).init();
-        Config { path }
+        if !path_ref.exists() {
+            is_initialised = false;
+            debug!("Store is not initialised.");
+            warn!("Run `todo init` to initialise storage");
+        } else {
+        }
+
+        let dbpath = String::from(&path) + "/.db";
+
+        let statuspath = String::from(&path) + "/.status";
+        Config {
+            path,
+            dbpath,
+            statuspath,
+            is_initialised,
+        }
     }
 }
-
-pub static APP_CONFIG: Lazy<Mutex<Config>> = Lazy::new(|| Mutex::new(Config::default()));

@@ -3,7 +3,10 @@ mod db;
 use clap::{Parser, Subcommand};
 
 use log::debug;
-use todo::APP_CONFIG;
+use todo::{commands::init::initialise_tables, config::Config};
+use env_logger::Env;
+use std::{env};
+
 
 #[derive(Parser)]
 #[command(name = "todo")]
@@ -15,6 +18,7 @@ struct Args {
 
 #[derive(Subcommand)]
 enum Commands {
+    Init,
     Add { item: String },
     List,
     Complete { id: i32 },
@@ -24,9 +28,17 @@ enum Commands {
 fn main() {
     let args = Args::parse();
 
-    let config = APP_CONFIG.lock().unwrap();
+    let mut config = Config::default();
+
+    let loglevel = env::var("TODO_LOG_LEVEL").unwrap_or_else(|_| String::from("debug"));
+    env_logger::Builder::from_env(Env::default().default_filter_or(&loglevel)).init();
+
 
     match &args.command {
+        Commands::Init => {
+            initialise_tables(&mut config);
+        }
+
         Commands::Add { item } => {
             println!("Adding {}", item);
         }
