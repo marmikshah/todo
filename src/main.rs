@@ -2,10 +2,13 @@ mod db;
 
 use clap::{Parser, Subcommand};
 
+use log::debug;
+use todo::APP_CONFIG;
+
 #[derive(Parser)]
-#[command(name = "Todo CLI")]
-#[command(version = "1.0")]
-struct CLI {
+#[command(name = "todo")]
+#[command(version = "0.0.0")]
+struct Args {
     #[command(subcommand)]
     command: Commands,
 }
@@ -19,23 +22,27 @@ enum Commands {
 }
 
 fn main() {
-    let cli = CLI::parse();
+    let args = Args::parse();
 
-    match &cli.command {
+    let config = APP_CONFIG.lock().unwrap();
+
+    match &args.command {
         Commands::Add { item } => {
-            println!("Adding");
+            println!("Adding {}", item);
         }
 
         Commands::List => {
             println!("Listing");
+            let path = &config.path;
+            debug!("Path: {path}");
         }
 
         Commands::Complete { id } => {
-            println!("Completed");
+            println!("Completed: {}", id);
         }
 
         Commands::Delete { id } => {
-            println!("Deleting");
+            println!("Deleting: {}", id);
         }
     }
 }
