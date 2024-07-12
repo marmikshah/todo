@@ -2,11 +2,13 @@ mod db;
 
 use clap::{Parser, Subcommand};
 
-use log::debug;
-use todo::{commands::init::initialise_tables, config::Config};
 use env_logger::Env;
-use std::{env};
-
+use log::debug;
+use std::env;
+use todo::{
+    commands::{self, add::add_task},
+    config::Config,
+};
 
 #[derive(Parser)]
 #[command(name = "todo")]
@@ -33,14 +35,14 @@ fn main() {
     let loglevel = env::var("TODO_LOG_LEVEL").unwrap_or_else(|_| String::from("debug"));
     env_logger::Builder::from_env(Env::default().default_filter_or(&loglevel)).init();
 
-
     match &args.command {
         Commands::Init => {
-            initialise_tables(&mut config);
+            let _ = commands::init::init(&mut config);
         }
 
         Commands::Add { item } => {
             println!("Adding {}", item);
+            add_task(item, &config);
         }
 
         Commands::List => {

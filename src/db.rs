@@ -1,5 +1,5 @@
 use log::{debug, info, warn};
-use rusqlite::{Connection, Params, Result};
+use rusqlite::{params, Connection, Params, Result, ToSql};
 
 use crate::Config;
 
@@ -19,5 +19,21 @@ impl Store {
 
     pub fn query(&self, stmt: &str) -> Result<usize> {
         self.connection.execute(stmt, ())
+    }
+
+    pub fn add_task(&self, item: &str) -> Result<usize, rusqlite::Error> {
+        // This function assumes all checks are done.
+        debug!("Preparing statment to add task");
+
+        let ret = self
+            .connection
+            .prepare("INSERT INTO tasks (description) VALUES (?)");
+
+        match ret {
+            Ok(mut stmt) => stmt.execute(params![item]),
+            Err(_) => {
+                panic!("Failed to add task")
+            }
+        }
     }
 }
