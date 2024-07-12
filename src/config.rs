@@ -1,5 +1,5 @@
 use std::io::Error;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::{env, fs};
 
 use log::{debug, info, warn, LevelFilter};
@@ -21,8 +21,8 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         log::set_max_level(LevelFilter::Debug);
-        debug!("Initialising db @ ./");
 
+        // TODO: Change to home directory
         let path = env::var("TODO_DATASTORE_DIR").unwrap_or_else(|_| String::from("./")) + ".todo/";
 
         let result = fs::create_dir_all(&path);
