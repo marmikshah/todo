@@ -1,25 +1,20 @@
+use std::path::PathBuf;
 
 use log::{debug, info, warn};
 use rusqlite::{params, Connection, Params, Result, ToSql};
 
-
-use crate::config::Config;
-
 use super::task::Task;
 
-
+#[derive(Debug)]
 pub struct Store {
     connection: Connection,
 }
 
 impl Store {
-    pub fn new() -> Result<Self> {
-        let config = Config::default();
+    pub fn new(dbpath: &PathBuf) -> Result<Self> {
+        debug!("Connecting to {}", dbpath.display());
 
-
-        debug!("Connecting to {}", &config.dbpath);
-
-        let conn = Connection::open(&config.dbpath).unwrap();
+        let conn = Connection::open(dbpath).unwrap();
         Ok(Store { connection: conn })
     }
 
@@ -49,9 +44,9 @@ impl Store {
         let mut stmt = self.connection.prepare(&query)?;
 
         let task_iter = stmt.query_map([], |row| {
-            Ok(Task{
+            Ok(Task {
                 id: row.get(0)?,
-                description: row.get(1)?
+                description: row.get(1)?,
             })
         })?;
 
@@ -61,6 +56,5 @@ impl Store {
         }
 
         Ok(tasks)
-
     }
 }

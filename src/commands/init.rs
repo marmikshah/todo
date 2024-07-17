@@ -1,18 +1,24 @@
-use std::{
-    fs,
-    fs::File,
-    io::{BufRead, BufReader, Error},
+use std::{fs, fs::File, io::Error};
+
+use log::{debug, error, info, warn};
+
+use crate::{
+    config::{Config, ConfigError},
+    db::store::Store,
 };
 
-use log::{debug, info, warn};
+pub fn init(config: &mut Config, store: &Store) -> Result<(), Error> {
+    if config.get_setup_status().is_ok() {
+        // TODO: Check if table exists.
+        warn!("Cannot re-initialize.");
+        return Ok(());
+    }
 
-use crate::{config::Config, db::store::Store};
+    if config.setup().is_ok() {
+        debug!("Paths have been setup");
+    }
 
-pub fn init(config: &mut Config) -> Result<(), Error> {
     debug!("Initialising tasks table");
-    let store = Store::new().unwrap();
-
-    debug!("Connected to table");
 
     let query = "
             CREATE TABLE IF NOT EXISTS tasks (
@@ -24,38 +30,14 @@ pub fn init(config: &mut Config) -> Result<(), Error> {
             );
         ";
 
-    let status_file_path = String::from(&config.path) + ".inited";
+    debug!("Attempting to initialise table in DB");
+    debug!("Query: {}", query);
+    let result = store.query(&query).unwrap();
+    debug!("{}", result);
 
-    match fs::metadata(&status_file_path) {
-        Ok(_) => {
-            config.is_initialised = true;
-        }
-        Err(_) => {
-            debug!(".inited not found");
-        }
-    }
-
-    if !config.is_initialised {
-        debug!("Attempting to initialise table in DB");
-        debug!("Query: {}", query);
-        let result = store.query(&query).unwrap();
-        debug!("{}", result);
-
-        if result == 0 {
-            info!("Successful!");
-            debug!("Task table created successfully");
-            match File::create(&status_file_path) {
-                Ok(_) => {
-                    debug!("Created init file successfully")
-                }
-                Err(_) => {
-                    panic!("Failed to create init file")
-                }
-            }
-            config.is_initialised = true;
-        } else {
-            panic!("Failed to initialise store.");
-        }
+    if result == 0 {
+        info!("Successful!");
+        debug!("Task table created successfully");
     }
 
     Ok(())

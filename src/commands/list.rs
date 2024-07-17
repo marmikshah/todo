@@ -2,10 +2,9 @@ use log::{self, debug};
 
 use crate::{config::Config, db::store::Store};
 
-pub fn list_tasks(config: &Config) {
+pub fn list_tasks(config: &Config, store: &Store) {
     debug!("Requesting task list from db");
 
-    let store = Store::new().unwrap();
     let result = store.get_tasks();
 
     match &result {

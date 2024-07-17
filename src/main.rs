@@ -1,13 +1,14 @@
+mod commands;
+mod config;
 mod db;
 
 use clap::{Parser, Subcommand};
 
+use commands::{add::add_task, list::list_tasks};
+use db::store::Store;
 use env_logger::Env;
 use std::env;
-use todo::{
-    commands::{self, add::add_task, list::list_tasks},
-    config::Config,
-};
+use std::io::Write;
 
 #[derive(Parser)]
 #[command(name = "todo")]
@@ -29,24 +30,27 @@ enum Commands {
 fn main() {
     let args = Args::parse();
 
-    let mut config = Config::default();
+    let mut config = config::Config::new();
+    let store = Store::new(&config.dbpath).unwrap();
 
-    let loglevel = env::var("TODO_LOG_LEVEL").unwrap_or_else(|_| String::from("debug"));
-    env_logger::Builder::from_env(Env::default().default_filter_or(&loglevel)).init();
+    let loglevel = env::var("TODO_LOG_LEVEL").unwrap_or_else(|_| String::from("info"));
+    env_logger::Builder::from_env(Env::default().default_filter_or(&loglevel))
+        .format(|buf, record| writeln!(buf, "{}", record.args()))
+        .init();
 
     match &args.command {
         Commands::Init => {
-            let _ = commands::init::init(&mut config);
+            let _ = commands::init::init(&mut config, &store);
         }
 
         Commands::Add { item } => {
             println!("Adding {}", item);
-            add_task(item, &config);
+            add_task(item, &store)
         }
 
         Commands::List => {
             println!("Listing");
-            list_tasks(&config);
+            list_tasks(&config, &store);
         }
 
         Commands::Complete { id } => {

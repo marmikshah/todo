@@ -2,14 +2,8 @@ use log::{debug, error};
 
 use crate::{config::Config, db::store::Store};
 
-pub fn add_task(item: &str, config: &Config) {
+pub fn add_task(item: &str, store: &Store) {
     debug!("Adding task: {}", item);
-
-    if !config.is_initialised {
-        error!("todo is not initialised. Please run `todo init`");
-    }
-
-    let store = Store::new().unwrap();
 
     match store.add_task(item) {
         Ok(_) => {
