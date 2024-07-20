@@ -1,5 +1,5 @@
+use std::fs;
 use std::path::PathBuf;
-use std::{fmt::format, fs};
 
 use log::{debug, error, warn, LevelFilter};
 
@@ -14,12 +14,8 @@ pub struct Config {
 
 #[derive(Debug, thiserror::Error)]
 pub enum ConfigError {
-    #[error("Failed to determine App directory: {0}")]
-    AppDirError(String),
     #[error("Failed to create directory: {0}")]
     CreateDirError(#[from] std::io::Error),
-    #[error("Cannot reassign path ")]
-    ReassignPathError(String),
 }
 
 impl Config {
@@ -39,12 +35,15 @@ impl Config {
         let mut db_path: PathBuf = PathBuf::from(&app_dir);
         db_path.push("app.db");
 
+        debug!("Application Directory: {}", &app_dir.display());
+        debug!("Database Path: {}", &db_path.display());
+
         let config = Config {
             path: app_dir,
             dbpath: db_path,
         };
 
-        if config.get_setup_status().is_err() {
+        if config.get_setup_status(false).is_err() {
             debug!(
                 "Setup has never been run before. Please run {} init",
                 PROJECT_NAME
@@ -54,18 +53,19 @@ impl Config {
         config
     }
 
-    pub fn get_setup_status(&self) -> Result<(), ()> {
+    pub fn get_setup_status(&self, checkdb: bool) -> Result<(), ()> {
         if !self.path.exists() {
             warn!("Application directory has not been setup");
             return Err(());
         }
 
-        if !self.dbpath.exists() {
-            warn!("Database file not found.");
-            return Err(());
-        }
-
-        if self.path.exists() && self.dbpath.exists() {
+        if self.path.exists() {
+            if checkdb {
+                if self.dbpath.exists() {
+                    return Ok(());
+                }
+                return Err(());
+            }
             return Ok(());
         }
 
@@ -73,7 +73,7 @@ impl Config {
     }
 
     pub fn setup(&self) -> Result<(), ConfigError> {
-        if self.get_setup_status().is_ok() {
+        if self.get_setup_status(false).is_ok() {
             warn!("All paths have already been setup. Running this again will have no effect");
             return Ok(());
         }

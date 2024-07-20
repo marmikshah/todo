@@ -30,8 +30,7 @@ enum Commands {
 fn main() {
     let args = Args::parse();
 
-    let mut config = config::Config::new();
-    let store = Store::new(&config.dbpath).unwrap();
+    let config = config::Config::new();
 
     let loglevel = env::var("TODO_LOG_LEVEL").unwrap_or_else(|_| String::from("info"));
     env_logger::Builder::from_env(Env::default().default_filter_or(&loglevel))
@@ -40,17 +39,17 @@ fn main() {
 
     match &args.command {
         Commands::Init => {
-            let _ = commands::init::init(&mut config, &store);
+            let _ = commands::init::init();
         }
 
         Commands::Add { item } => {
             println!("Adding {}", item);
-            add_task(item, &store)
+            add_task(item)
         }
 
         Commands::List => {
             println!("Listing");
-            list_tasks(&config, &store);
+            list_tasks();
         }
 
         Commands::Complete { id } => {

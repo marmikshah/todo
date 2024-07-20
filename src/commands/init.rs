@@ -1,14 +1,12 @@
-use std::{fs, fs::File, io::Error};
+use std::io::Error;
 
-use log::{debug, error, info, warn};
+use log::{debug, info, warn};
 
-use crate::{
-    config::{Config, ConfigError},
-    db::store::Store,
-};
+use crate::{config::Config, db::store::Store};
 
-pub fn init(config: &mut Config, store: &Store) -> Result<(), Error> {
-    if config.get_setup_status().is_ok() {
+pub fn init() -> Result<(), Error> {
+    let config = Config::new();
+    if config.get_setup_status(true).is_ok() {
         // TODO: Check if table exists.
         warn!("Cannot re-initialize.");
         return Ok(());
@@ -32,6 +30,8 @@ pub fn init(config: &mut Config, store: &Store) -> Result<(), Error> {
 
     debug!("Attempting to initialise table in DB");
     debug!("Query: {}", query);
+
+    let store = Store::new(&config.dbpath).unwrap();
     let result = store.query(&query).unwrap();
     debug!("{}", result);
 

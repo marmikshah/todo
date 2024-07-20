@@ -5,7 +5,6 @@ use rusqlite::{params, Connection, Params, Result, ToSql};
 
 use super::task::Task;
 
-#[derive(Debug)]
 pub struct Store {
     connection: Connection,
 }
