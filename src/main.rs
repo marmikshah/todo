@@ -5,7 +5,6 @@ mod db;
 use clap::{Parser, Subcommand};
 
 use commands::{add::add_task, list::list_tasks};
-use db::store::Store;
 use env_logger::Env;
 use std::env;
 use std::io::Write;
