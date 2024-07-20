@@ -1,19 +1,19 @@
+use std::path::PathBuf;
+
 use log::{debug, info, warn};
 use rusqlite::{params, Connection, Params, Result, ToSql};
 
-use crate::Config;
+use super::task::Task;
 
 pub struct Store {
     connection: Connection,
 }
 
 impl Store {
-    pub fn new() -> Result<Self> {
-        let config = Config::default();
+    pub fn new(dbpath: &PathBuf) -> Result<Self> {
+        debug!("Connecting to {}", dbpath.display());
 
-        debug!("Connecting to {}", &config.dbpath);
-
-        let conn = Connection::open(&config.dbpath).unwrap();
+        let conn = Connection::open(dbpath).unwrap();
         Ok(Store { connection: conn })
     }
 
@@ -35,5 +35,25 @@ impl Store {
                 panic!("Failed to add task")
             }
         }
+    }
+
+    pub fn get_tasks(&self) -> Result<Vec<Task>, rusqlite::Error> {
+        let query = " SELECT * FROM tasks; ";
+
+        let mut stmt = self.connection.prepare(&query)?;
+
+        let task_iter = stmt.query_map([], |row| {
+            Ok(Task {
+                id: row.get(0)?,
+                description: row.get(1)?,
+            })
+        })?;
+
+        let mut tasks: Vec<Task> = Vec::new();
+        for task in task_iter {
+            tasks.push(task?);
+        }
+
+        Ok(tasks)
     }
 }

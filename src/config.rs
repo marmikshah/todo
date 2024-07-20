@@ -1,58 +1,90 @@
-use std::io::Error;
-use std::path::Path;
-use std::{env, fs};
+use std::fs;
+use std::path::PathBuf;
 
-use log::{debug, info, warn, LevelFilter};
+use log::{debug, error, warn, LevelFilter};
+
+pub const ENV_VAR_DATASTORE_DIR: &str = "TODO_DATASTORE_DIR";
+pub const PROJECT_NAME: &str = "todo";
 
 #[derive(Debug)]
 pub struct Config {
-    pub path: String,
-    pub dbpath: String,
-    pub statuspath: String,
-    pub is_initialised: bool,
+    path: PathBuf,
+    pub dbpath: PathBuf,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ConfigError {
+    #[error("Failed to create directory: {0}")]
+    CreateDirError(#[from] std::io::Error),
 }
 
 impl Config {
-    pub fn update_init_status(self) -> Result<(), Error> {
-        Ok(())
-    }
-}
-
-impl Default for Config {
-    fn default() -> Self {
+    /// Return a new instance of Config with all nones.
+    pub fn new() -> Self {
         log::set_max_level(LevelFilter::Debug);
-        debug!("Initialising db @ ./");
 
-        let path = env::var("TODO_DATASTORE_DIR").unwrap_or_else(|_| String::from("./")) + ".todo/";
+        let ret = std::env::var(ENV_VAR_DATASTORE_DIR);
+        let mut app_dir: PathBuf;
+        match ret {
+            Ok(path) => app_dir = PathBuf::from(path),
+            Err(_) => app_dir = dirs::home_dir().unwrap_or_else(|| PathBuf::from("./")),
+        }
 
-        let result = fs::create_dir_all(&path);
-        if result.is_ok() {
-            debug!("Directory @ {} created successfully", &path);
-        } else {
-            panic!(
-                "Cannot create data storage directory. Do you have the correct write permissions?"
+        app_dir.push(&format!(".{}", PROJECT_NAME));
+
+        let mut db_path: PathBuf = PathBuf::from(&app_dir);
+        db_path.push("app.db");
+
+        debug!("Application Directory: {}", &app_dir.display());
+        debug!("Database Path: {}", &db_path.display());
+
+        let config = Config {
+            path: app_dir,
+            dbpath: db_path,
+        };
+
+        if config.get_setup_status(false).is_err() {
+            debug!(
+                "Setup has never been run before. Please run {} init",
+                PROJECT_NAME
             );
         }
 
-        let mut is_initialised = false;
-        let status_file_path = &format!("{}.status", path);
-        let path_ref = Path::new(&status_file_path);
+        config
+    }
 
-        if !path_ref.exists() {
-            is_initialised = false;
-            debug!("Store is not initialised.");
-            warn!("Run `todo init` to initialise storage");
-        } else {
+    pub fn get_setup_status(&self, checkdb: bool) -> Result<(), ()> {
+        if !self.path.exists() {
+            warn!("Application directory has not been setup");
+            return Err(());
         }
 
-        let dbpath = String::from(&path) + "/.db";
-
-        let statuspath = String::from(&path) + "/.status";
-        Config {
-            path,
-            dbpath,
-            statuspath,
-            is_initialised,
+        if self.path.exists() {
+            if checkdb {
+                if self.dbpath.exists() {
+                    return Ok(());
+                }
+                return Err(());
+            }
+            return Ok(());
         }
+
+        Err(())
+    }
+
+    pub fn setup(&self) -> Result<(), ConfigError> {
+        if self.get_setup_status(false).is_ok() {
+            warn!("All paths have already been setup. Running this again will have no effect");
+            return Ok(());
+        }
+        if fs::create_dir(&self.path).is_err() {
+            panic!(
+                "Failed to create directory @ {}",
+                (&self.path).to_string_lossy()
+            );
+        }
+        debug!("Directory created successfully");
+
+        Ok(())
     }
 }
