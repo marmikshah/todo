@@ -46,6 +46,7 @@ impl Store {
             Ok(Task {
                 id: row.get(0)?,
                 description: row.get(1)?,
+                status: row.get(2)?,
             })
         })?;
 

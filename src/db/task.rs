@@ -1,21 +1,22 @@
-use std::fmt;
-
-use log::info;
-
 #[derive(Debug)]
 pub struct Task {
     pub id: i32,
     pub description: String,
+    pub status: bool,
 }
 
-impl fmt::Display for Task {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}\t\t{}\t\t", self.id, self.description)
-    }
+pub struct TaskParamLengths {
+    pub id: usize,
+    pub description: usize,
+    pub status: usize,
 }
 
 impl Task {
-    pub fn print_headers() {
-        info!("Task ID\t\tTask Name");
+    pub fn status_to_string(&self) -> String {
+        if self.status {
+            String::from("Completed")
+        } else {
+            String::from("In Progress")
+        }
     }
 }
