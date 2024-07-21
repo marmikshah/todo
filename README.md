@@ -1,6 +1,7 @@
 # todo: A simple command-line task manager built with Rust and SQLite.
 
-[![Testing Actions Status](https://github.com/marmikshah/todo/workflows/test/badge.svg)](https://github.com/marmikshah/todo/actions) [![Code-Quality Actions Status](https://github.com/marmikshah/todo/workflows/code-quality/badge.svg)](https://github.com/marmikshah/todo/actions) 
+[![Code Quality](https://github.com/marmikshah/todo/actions/workflows/code-quality.yml/badge.svg?branch=main)](https://github.com/marmikshah/todo/actions/workflows/code-quality.yml)
+[![Test](https://github.com/marmikshah/todo/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/marmikshah/todo/actions/workflows/test.yml)
 
 ## Table of Contents
 - [Introduction](#introduction)
