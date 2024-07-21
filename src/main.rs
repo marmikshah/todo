@@ -4,10 +4,14 @@ mod db;
 
 use clap::{Parser, Subcommand};
 
+use commands::complete::complete_task;
+use commands::delete::delete_task;
 use commands::{add::add_task, list::list_tasks};
 use env_logger::Env;
+use log::{debug, error};
 use std::env;
 use std::io::Write;
+use std::process::exit;
 
 #[derive(Parser)]
 #[command(name = "todo")]
@@ -26,10 +30,20 @@ enum Commands {
     Delete { id: i32 },
 }
 
+fn exit_if_needed(setup_status: Result<(), ()>) {
+    debug!("Setup Status: {}", setup_status.is_ok());
+    if setup_status.is_err() {
+        error!("Please run `todo init` first.");
+        exit(1);
+    }
+}
+
 fn main() {
     let args = Args::parse();
 
     let config = config::Config::new();
+
+    let status = config.get_setup_status(true);
 
     let loglevel = env::var("TODO_LOG_LEVEL").unwrap_or_else(|_| String::from("info"));
     env_logger::Builder::from_env(Env::default().default_filter_or(&loglevel))
@@ -38,25 +52,29 @@ fn main() {
 
     match &args.command {
         Commands::Init => {
+            // For `init` db path will not exist in the beginning,
+            // so no need to check for setup status.
             let _ = commands::init::init();
         }
 
         Commands::Add { item } => {
-            println!("Adding {}", item);
+            exit_if_needed(status);
             add_task(item)
         }
 
         Commands::List => {
-            println!("Listing");
+            exit_if_needed(status);
             list_tasks();
         }
 
         Commands::Complete { id } => {
-            println!("Completed: {}", id);
+            exit_if_needed(status);
+            complete_task(id);
         }
 
         Commands::Delete { id } => {
-            println!("Deleting: {}", id);
+            exit_if_needed(status);
+            delete_task(id);
         }
     }
 }

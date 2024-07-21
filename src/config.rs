@@ -43,22 +43,10 @@ impl Config {
             dbpath: db_path,
         };
 
-        if config.get_setup_status(false).is_err() {
-            debug!(
-                "Setup has never been run before. Please run {} init",
-                PROJECT_NAME
-            );
-        }
-
         config
     }
 
     pub fn get_setup_status(&self, checkdb: bool) -> Result<(), ()> {
-        if !self.path.exists() {
-            warn!("Application directory has not been setup");
-            return Err(());
-        }
-
         if self.path.exists() {
             if checkdb {
                 if self.dbpath.exists() {

@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
-use log::{debug, info, warn};
-use rusqlite::{params, Connection, Params, Result, ToSql};
+use log::debug;
+use rusqlite::{params, Connection, Result};
 
 use super::task::Task;
 

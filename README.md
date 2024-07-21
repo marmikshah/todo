@@ -26,7 +26,7 @@ todo is a lightweight and efficient command-line task manager that helps you kee
 1. **Clone the repository:**
 
     ```sh
-    git clone https://github.com/yourusername/todo.git
+    git clone https://github.com/marmikshah/todo.git
     cd todo
     ```
 
@@ -34,13 +34,18 @@ todo is a lightweight and efficient command-line task manager that helps you kee
 
     ```sh
     cargo build --release
+    cd target/release/
     ```
-
-3. **Set up the database:**
-
-    Provide any necessary commands or steps to set up SQLite.
+ 
 
 ## Usage
+
+- **Initialize paths**
+
+    ```sh
+    ./todo init
+    ```
+
 
 - **Adding a task:**
 
@@ -68,18 +73,9 @@ todo is a lightweight and efficient command-line task manager that helps you kee
 
 ## Configuration
 
-Explain any configuration options available and how to set them up.
+The following environment vars can be used to modify the behaviour
 
-## Contributing
-
-1. Fork the repository
-2. Create a new branch
-3. Commit your changes
-4. Push to the branch
-5. Open a pull request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- TODO_DATASTORE_DIR: Sets the directory to store data. Defaults to `/home/$(whoami)` 
+- TODO_LOG_LEVEL: Logging level. Defaults to `info`
 
 

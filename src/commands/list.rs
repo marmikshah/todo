@@ -1,7 +1,7 @@
 use log::{self, debug};
 use todo::config::Config;
 
-use crate::db::store::Store;
+use crate::db::{store::Store, task::Task};
 
 pub fn list_tasks() {
     debug!("Requesting task list from db");
@@ -10,6 +10,7 @@ pub fn list_tasks() {
     let store = Store::new(&config.dbpath).unwrap();
     let result = store.get_tasks();
 
+    Task::print_headers();
     match &result {
         Ok(tasks) => {
             for task in tasks {
