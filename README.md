@@ -1,14 +1,13 @@
-# ToDo: A simple command-line task manager built with Rust and SQLite.
+# todo: A simple command-line task manager built with Rust and SQLite.
+
+[![Testing Actions Status](https://github.com/marmikshah/todo/workflows/test/badge.svg)](https://github.com/marmikshah/todo/actions) [![Code-Quality Actions Status](https://github.com/marmikshah/todo/workflows/code-quality/badge.svg)](https://github.com/marmikshah/todo/actions) 
 
 ## Table of Contents
-
 - [Introduction](#introduction)
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Configuration](#configuration)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Introduction
 
