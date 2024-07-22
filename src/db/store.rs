@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use log::debug;
+use log::{debug, error};
 use rusqlite::{params, Connection, Result};
 
 use super::task::Task;
@@ -56,5 +56,20 @@ impl Store {
         }
 
         Ok(tasks)
+    }
+
+    pub fn update_task_status(&self, id: &i32, status: i32) -> Result<(), ()> {
+        let query = "UPDATE tasks SET status = ?1 WHERE id = ?2; ";
+
+        match self.connection.execute(&query, params![status, id]) {
+            Ok(ret) => {
+                debug!("Task Update Result: {}", ret);
+                Ok(())
+            }
+            Err(err) => {
+                error!("Failed to update task");
+                Err(())
+            }
+        }
     }
 }
