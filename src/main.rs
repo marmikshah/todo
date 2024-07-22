@@ -69,7 +69,9 @@ fn main() {
 
         Commands::Complete { id } => {
             exit_if_needed(status);
-            complete_task(id);
+            if complete_task(id).is_ok() {
+                list_tasks();
+            }
         }
 
         Commands::Delete { id } => {
