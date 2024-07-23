@@ -5,7 +5,7 @@ use log::{debug, info, warn};
 use crate::{config::Config, db::store::Store};
 
 pub fn init() -> Result<(), Error> {
-    let config = Config::new();
+    let config = Config::default();
     if config.get_setup_status(true).is_ok() {
         // TODO: Check if table exists.
         warn!("Cannot re-initialize.");
@@ -32,7 +32,7 @@ pub fn init() -> Result<(), Error> {
     debug!("Query: {}", query);
 
     let store = Store::new(&config.dbpath).unwrap();
-    let result = store.query(&query).unwrap();
+    let result = store.query(query).unwrap();
     debug!("{}", result);
 
     if result == 0 {

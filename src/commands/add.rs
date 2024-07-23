@@ -6,7 +6,7 @@ use crate::db::store::Store;
 pub fn add_task(item: &str) {
     debug!("Adding task: {}", item);
 
-    let config = Config::new();
+    let config = Config::default();
     let store = Store::new(&config.dbpath).unwrap();
 
     match store.add_task(item) {

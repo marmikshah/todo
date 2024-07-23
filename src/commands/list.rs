@@ -1,5 +1,3 @@
-use std::iter;
-
 use log::{self, debug, info};
 use todo::config::Config;
 
@@ -13,7 +11,7 @@ fn sfill(str: &String, count: usize) -> String {
 pub fn list_tasks() {
     debug!("Requesting task list from db");
 
-    let config = Config::new();
+    let config = Config::default();
     let store = Store::new(&config.dbpath).unwrap();
     let result = store.get_tasks();
 
@@ -39,9 +37,7 @@ pub fn list_tasks() {
             );
 
             info!("{}", header);
-            let divider = iter::repeat("-")
-                .take(header.chars().count())
-                .collect::<String>();
+            let divider = "-".repeat(header.chars().count());
             info!("{}", divider);
             for task in tasks {
                 info!(

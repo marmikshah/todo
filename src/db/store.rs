@@ -40,7 +40,7 @@ impl Store {
     pub fn get_tasks(&self) -> Result<Vec<Task>, rusqlite::Error> {
         let query = " SELECT * FROM tasks; ";
 
-        let mut stmt = self.connection.prepare(&query)?;
+        let mut stmt = self.connection.prepare(query)?;
 
         let task_iter = stmt.query_map([], |row| {
             Ok(Task {
@@ -63,7 +63,7 @@ impl Store {
 
         debug!("Query: {}", query);
 
-        match self.connection.execute(&query, params![status, id]) {
+        match self.connection.execute(query, params![status, id]) {
             Ok(ret) => {
                 debug!("Task Update Result: {}", ret);
                 Ok(())
@@ -80,7 +80,7 @@ impl Store {
 
         debug!("Query: {}", query);
 
-        match self.connection.execute(&query, params![id]) {
+        match self.connection.execute(query, params![id]) {
             Ok(ret) => {
                 debug!("Task update result: {}", ret);
                 Ok(())
