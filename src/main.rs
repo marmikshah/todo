@@ -76,7 +76,9 @@ fn main() {
 
         Commands::Delete { id } => {
             exit_if_needed(status);
-            delete_task(id);
+            if delete_task(id).is_ok() {
+                list_tasks();
+            }
         }
     }
 }

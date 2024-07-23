@@ -61,13 +61,32 @@ impl Store {
     pub fn update_task_status(&self, id: &i32, status: i32) -> Result<(), ()> {
         let query = "UPDATE tasks SET status = ?1 WHERE id = ?2; ";
 
+        debug!("Query: {}", query);
+
         match self.connection.execute(&query, params![status, id]) {
             Ok(ret) => {
                 debug!("Task Update Result: {}", ret);
                 Ok(())
             }
-            Err(err) => {
+            Err(_) => {
                 error!("Failed to update task");
+                Err(())
+            }
+        }
+    }
+
+    pub fn delete_record(&self, id: &i32) -> Result<(), ()> {
+        let query = "DELETE FROM tasks WHERE id = ?1";
+
+        debug!("Query: {}", query);
+
+        match self.connection.execute(&query, params![id]) {
+            Ok(ret) => {
+                debug!("Task update result: {}", ret);
+                Ok(())
+            }
+            Err(_) => {
+                error!("Failed to delete task");
                 Err(())
             }
         }
