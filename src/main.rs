@@ -5,8 +5,10 @@ mod db;
 use clap::{Parser, Subcommand};
 
 use commands::complete::complete_task;
+use commands::deinit::deinit;
 use commands::delete::delete_task;
 use commands::{add::add_task, list::list_tasks};
+use config::ConfigError;
 use env_logger::Env;
 use log::{debug, error};
 use std::env;
@@ -28,9 +30,10 @@ enum Commands {
     List,
     Complete { id: i32 },
     Delete { id: i32 },
+    Deinit,
 }
 
-fn exit_if_needed(setup_status: Result<(), ()>) {
+fn exit_if_needed(setup_status: Result<(), ConfigError>) {
     debug!("Setup Status: {}", setup_status.is_ok());
     if setup_status.is_err() {
         error!("Please run `todo init` first.");
@@ -41,7 +44,7 @@ fn exit_if_needed(setup_status: Result<(), ()>) {
 fn main() {
     let args = Args::parse();
 
-    let config = config::Config::new();
+    let config = config::Config::default();
 
     let status = config.get_setup_status(true);
 
@@ -59,7 +62,8 @@ fn main() {
 
         Commands::Add { item } => {
             exit_if_needed(status);
-            add_task(item)
+            add_task(item);
+            list_tasks();
         }
 
         Commands::List => {
@@ -77,6 +81,13 @@ fn main() {
         Commands::Delete { id } => {
             exit_if_needed(status);
             if delete_task(id).is_ok() {
+                list_tasks();
+            }
+        }
+
+        Commands::Deinit => {
+            exit_if_needed(status);
+            if deinit().is_err() {
                 list_tasks();
             }
         }

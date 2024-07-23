@@ -1,4 +1,4 @@
-use std::{error, io};
+use std::io;
 
 use log::{debug, info, warn};
 
@@ -15,7 +15,7 @@ pub fn delete_task(id: &i32) -> Result<(), ()> {
     let input = input.trim();
     if input.to_lowercase() == "y" {
         debug!("Attempting to delete task: {}", id);
-        let config = Config::new();
+        let config = Config::default();
         let store = Store::new(&config.dbpath).unwrap();
         store.delete_record(id)
     } else {

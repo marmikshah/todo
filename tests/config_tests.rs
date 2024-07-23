@@ -22,7 +22,7 @@ fn clear_env_var(key: &str) {
 
 #[test]
 fn test_default_config() {
-    let _config = Config::new();
+    let _config = Config::default();
 }
 
 #[test]
@@ -30,7 +30,7 @@ fn test_is_setup_without_setup() {
     let temp_dir = tempdir().unwrap();
     set_env_var(&ENV_VAR_DATASTORE_DIR, temp_dir.path().to_str().unwrap());
 
-    let config = Config::new();
+    let config = Config::default();
 
     let result = config.get_setup_status(false);
     assert!(result.is_err() || !result.is_ok());
@@ -43,7 +43,7 @@ fn test_setup() {
     let temp_dir = tempdir().unwrap();
     set_env_var(&ENV_VAR_DATASTORE_DIR, temp_dir.path().to_str().unwrap());
 
-    let config = Config::new();
+    let config = Config::default();
 
     let status = config.get_setup_status(false);
     assert!(status.is_err() || !status.is_ok());
