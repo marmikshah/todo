@@ -9,6 +9,4 @@ pub fn complete_task(id: &i32) -> Result<(), ()> {
     let store = Store::new(&config.dbpath).unwrap();
 
     store.update_task_status(id, 1)
-        
-
 }
