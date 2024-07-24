@@ -53,22 +53,22 @@ todo is a lightweight and efficient command-line task manager that helps you kee
     ./todo add 'Buy groceries'
     ```
 
+- **List all tasks**
+
+    ```sh
+    ./todo list
+    ```
+
 - **Removing a task:**
 
     ```sh
     ./todo remove 1
     ```
 
-- **Updating a task:**
-
-    ```sh
-    ./todo update 2 'Finish project'
-    ```
-
 - **Completing a task:**
 
     ```sh
-    ./todo complete 3
+    ./todo complete 1
     ```
 
 ## Configuration
