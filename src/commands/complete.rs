@@ -1,12 +1,28 @@
-use log::info;
+use crate::{model::task::TaskStatus, storage::Storage};
 
-use crate::{config::Config, db::store::Store};
+/// Marks a task as completed using its unique key.
+///
+/// The task's status will be changed to `Completed` and the change will be saved.
+///
+/// # Arguments
+///
+/// * `storage` - Mutable reference to the storage system
+/// * `key` - Unique key of the task to complete
+///
+/// # Errors
+///
+/// This function will return early if the task key is not found.
+pub fn handle_complete(storage: &mut Storage, key: String) {
+    println!("Completing task: {}", key);
 
-pub fn complete_task(id: &i32) -> Result<(), ()> {
-    info!("Completed Task: {}", id);
+    if !storage.data.tasks.contains_key(&key) {
+        println!("Task with key {} not found", key);
+        return;
+    }
 
-    let config = Config::default();
-    let store = Store::new(&config.dbpath).unwrap();
+    if let Some(task) = storage.data.tasks.get_mut(&key) {
+        task.status = TaskStatus::Completed;
+    }
 
-    store.update_task_status(id, 1)
+    storage.save("✓ Task completed successfully!", "Failed to complete task");
 }

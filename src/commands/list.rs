@@ -1,59 +1,105 @@
-use log::{self, debug, info};
-use todo::config::Config;
+use crate::{model::task::TaskStatus, storage::Storage};
+use colored::*;
+use comfy_table::{presets::UTF8_FULL, Cell, Table};
 
-use crate::db::{store::Store, task::TaskParamLengths};
-use colored::{Color, Colorize};
+/// Displays tasks in a formatted table with optional filtering.
+///
+/// Tasks are displayed with their keys, descriptions, status, priority, and due dates.
+/// When verbose mode is enabled, creation and update timestamps are also shown.
+///
+/// # Arguments
+///
+/// * `storage` - Reference to the storage system
+/// * `filter` - Optional text filter (searches within task descriptions)
+/// * `status` - Optional status filter
+/// * `verbose` - Whether to show additional timestamp columns
+/// * `_limit` - Optional limit on number of results (currently unused)
+pub fn handle_list(
+    storage: &Storage,
+    filter: Option<String>,
+    status: Option<TaskStatus>,
+    verbose: bool,
+    _limit: Option<usize>,
+) {
+    let tasks: Vec<_> = storage
+        .data
+        .tasks
+        .iter()
+        .filter(|(_, task)| {
+            let mut matches = true;
 
-fn sfill(str: &String, count: usize) -> String {
-    format!("{:<width$}", str, width = count + 1)
-}
-
-pub fn list_tasks() {
-    debug!("Requesting task list from db");
-
-    let config = Config::default();
-    let store = Store::new(&config.dbpath).unwrap();
-    let result = store.get_tasks();
-
-    let mut lengths = TaskParamLengths {
-        id: 2,
-        description: 11,
-        status: 11,
-    };
-    match &result {
-        Ok(tasks) => {
-            for task in tasks {
-                let nchars = &task.description.chars().count();
-                if nchars > &lengths.description {
-                    lengths.description = *nchars;
-                }
+            if let Some(status) = &status {
+                matches &= task.status == *status;
             }
 
-            let header = format!(
-                "| {} | {} | {} |",
-                sfill(&String::from("ID"), lengths.id),
-                sfill(&String::from("Description"), lengths.description),
-                sfill(&String::from("Status"), lengths.status)
-            );
-
-            info!("{}", header);
-            let divider = "-".repeat(header.chars().count());
-            info!("{}", divider);
-            for task in tasks {
-                info!(
-                    "| {} | {} | {} |",
-                    sfill(&task.id.to_string(), lengths.id),
-                    sfill(&task.description, lengths.description),
-                    sfill(&task.status_to_string(), lengths.status).color(if task.status {
-                        Color::Green
-                    } else {
-                        Color::Yellow
-                    })
-                )
+            if let Some(filter) = &filter {
+                matches &= task.description.contains(filter);
             }
-        }
-        Err(_) => {
-            panic!("Failed to retrieve tasks");
-        }
+
+            matches
+        })
+        .collect();
+
+    if tasks.is_empty() {
+        println!("{}", "No tasks found.".yellow());
+        return;
     }
+
+    let task_count = tasks.len();
+    let mut table = Table::new();
+    table.load_preset(UTF8_FULL);
+
+    table.set_content_arrangement(comfy_table::ContentArrangement::Dynamic);
+
+    let mut headers = vec![
+        Cell::new("Key")
+            .fg(comfy_table::Color::Cyan)
+            .add_attribute(comfy_table::Attribute::Bold),
+        Cell::new("Description")
+            .fg(comfy_table::Color::White)
+            .add_attribute(comfy_table::Attribute::Bold),
+        Cell::new("Status")
+            .fg(comfy_table::Color::Green)
+            .add_attribute(comfy_table::Attribute::Bold),
+        Cell::new("Priority")
+            .fg(comfy_table::Color::Yellow)
+            .add_attribute(comfy_table::Attribute::Bold),
+        Cell::new("Due Date")
+            .fg(comfy_table::Color::Blue)
+            .add_attribute(comfy_table::Attribute::Bold),
+    ];
+    if verbose {
+        headers.push(
+            Cell::new("Created At")
+                .fg(comfy_table::Color::Blue)
+                .add_attribute(comfy_table::Attribute::Bold),
+        );
+        headers.push(
+            Cell::new("Updated At")
+                .fg(comfy_table::Color::Blue)
+                .add_attribute(comfy_table::Attribute::Bold),
+        );
+    }
+
+    table.set_header(headers);
+
+    for (key, task) in tasks {
+        let mut row = vec![
+            Cell::new(key.as_str()),
+            Cell::new(task.description.as_str()),
+            task.status.get_comfy_cell(),
+            task.priority.get_comfy_cell(),
+            Cell::new(task.due_date.format("%Y%m%d").to_string()),
+        ];
+
+        if verbose {
+            row.push(Cell::new(task.created_at.format("%Y%m%d").to_string()));
+            row.push(Cell::new(task.updated_at.format("%Y%m%d").to_string()));
+        }
+
+        table.add_row(row);
+    }
+
+    println!("{}", table);
+    println!("{}", format!("{} tasks found.", task_count).dimmed());
 }

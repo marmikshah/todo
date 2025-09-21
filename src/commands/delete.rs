@@ -1,25 +1,29 @@
-use std::io;
+use crate::storage::Storage;
+use colored::*;
 
-use log::{debug, info, warn};
+/// Removes a task from storage using its unique key.
+///
+/// The task will be permanently deleted and the change will be saved.
+///
+/// # Arguments
+///
+/// * `storage` - Mutable reference to the storage system
+/// * `key` - Unique key of the task to delete
+///
+/// # Errors
+///
+/// This function will return early if the task key is not found.
+pub fn handle_delete(storage: &mut Storage, key: String) {
+    println!("Deleting task: {}", key);
 
-use crate::{config::Config, db::store::Store};
+    if !storage.data.tasks.contains_key(&key) {
+        println!("Task with key {} not found", key);
+        return;
+    }
 
-pub fn delete_task(id: &i32) -> Result<(), ()> {
-    // info!("Deleting Task: {}", id);
-    warn!("This is a destructive operation. Do you wish to proceed? (y/n)");
-
-    let mut input = String::new();
-
-    io::stdin().read_line(&mut input).expect("Failed to read");
-
-    let input = input.trim();
-    if input.to_lowercase() == "y" {
-        debug!("Attempting to delete task: {}", id);
-        let config = Config::default();
-        let store = Store::new(&config.dbpath).unwrap();
-        store.delete_record(id)
+    if storage.data.tasks.remove(&key).is_some() {
+        storage.save("✓ Task deleted successfully!", "Failed to delete task");
     } else {
-        info!("Not deleting.");
-        Ok(())
+        println!("Task with key {} not found", key.red());
     }
 }
